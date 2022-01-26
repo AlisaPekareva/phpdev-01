@@ -1,0 +1,32 @@
+server {
+    listen              80;
+    server_name		dev01.my;
+
+    access_log          /var/log/nginx/dev01.access.log;
+    error_log           /var/log/nginx/dev01.error.log;
+
+    root                /www/phpdev-01;
+    index               index.php;
+
+    charset             utf-8;
+
+    location / {
+        if (-f $request_filename) {
+            expires max;
+            break;
+        }
+        if ( !-e $request_filename ) {
+            rewrite ^(.*) /index.php last;
+        }
+    }
+
+    location ~ "^(.+\.php)($|/)" {
+        fastcgi_split_path_info ^(.+\.php)(.*)$;
+        fastcgi_param   SCRIPT_FILENAME   $document_root$fastcgi_script_name;
+        fastcgi_param   SCRIPT_NAME       $fastcgi_script_name;
+        fastcgi_param   PATH_INFO         $fastcgi_path_info;
+        fastcgi_pass    unix:/run/php/php7.4-fpm.sock;
+
+        include         fastcgi_params;
+    }
+}
